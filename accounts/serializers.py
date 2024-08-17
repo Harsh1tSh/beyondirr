@@ -19,7 +19,7 @@ def validate_arn_selenium(arn_number, user_email):
 
     try:
         driver.get('https://www.amfiindia.com/locate-your-nearest-mutual-fund-distributor-details')
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.TAG_NAME, "body")))  # Ensure page is loaded
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.TAG_NAME, "body")))  
 
         # Find and fill the ARN input field
         arn_input = WebDriverWait(driver, 10).until(
