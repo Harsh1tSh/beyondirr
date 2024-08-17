@@ -4,6 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import User
+from django.contrib.auth.hashers import make_password
 # Create your views here.
 
 User = get_user_model()

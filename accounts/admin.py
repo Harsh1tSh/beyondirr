@@ -5,7 +5,7 @@ from .models import User
 # Register your models here.
 
 class UserAdmin(BaseUserAdmin):
-    # Update this to include fields from your custom user model
+
     model = User
     list_display = ['email', 'is_staff', 'is_active']
     list_filter = ('is_staff', 'is_active',)
