@@ -13,7 +13,7 @@ import time
 
 def validate_arn_selenium(arn_number, user_email):
     options = Options()
-    options.headless = True  # Running in headless mode
+    options.headless = True  
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
 
@@ -21,26 +21,22 @@ def validate_arn_selenium(arn_number, user_email):
         driver.get('https://www.amfiindia.com/locate-your-nearest-mutual-fund-distributor-details')
         WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.TAG_NAME, "body")))  
 
-        # Find and fill the ARN input field
         arn_input = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "NearestFindAdvisorsARN"))
         )
         arn_input.send_keys(arn_number)
-        print(arn_number)
-
-        # Submit the form
+        
         submit_button = driver.find_element(By.XPATH, '//input[@value="Go"]')
         submit_button.click()
 
-        # Wait for results to load and parse them
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.TAG_NAME, "body"))) 
-        results_table = driver.find_element(By.ID, 'divExcel')
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'divExcel'))) 
+        results_table = driver.find_element(By.TAG_NAME, 'table')
         rows = results_table.find_elements(By.TAG_NAME, 'tr')
         
-        for row in rows:  
-            cells = row.find_elements(By.TAG_NAME, 'th')
-            arn_from_table = cells[1].text.strip()  
-            email_from_table = cells[5].text.strip()  
+        for row in rows[1:]:  # Skip header row
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            arn_from_table = cells[0].text.strip()  
+            email_from_table = cells[4].text.strip()  
             if arn_from_table == arn_number and email_from_table.lower() == user_email.lower():
                 return True
 
@@ -50,7 +46,47 @@ def validate_arn_selenium(arn_number, user_email):
         return False
     finally:
         driver.quit()
+
 # :(
+
+# import requests
+# from bs4 import BeautifulSoup
+
+# def verify_arn(arn_number, signup_email):
+#     # URL of the form
+#     url = "https://www.amfiindia.com/locate-your-nearest-mutual-fund-distributor-details"
+
+#     # Form data
+#     data = {
+#         'AMFI Registration Number(ARN)': arn_number,
+
+#     }
+
+#     # Submit the form
+#     response = requests.post(url, data=data)
+
+#     # Check if the request was successful
+#     if response.status_code == 200:
+#         soup = BeautifulSoup(response.text, 'html.parser')
+#         table = soup.find('table', {'id': 'NearestFindAdvisorsARN'}) 
+
+#         # Extract email from the table
+#         email_from_table = None
+#         for row in table.find_all('tr'):
+#             cols = row.find_all('td')
+#             if len(cols) > 1: 
+#                 if "Email" in cols[0].text:
+#                     email_from_table = cols[1].text.strip()
+#                     break
+        
+   
+#         if email_from_table == signup_email:
+#             return True
+#         else:
+#             return False
+
+#     else:
+#         return False
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
@@ -66,6 +102,13 @@ class UserSignupSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"arn_number": "ARN number is invalid or does not match the provided email."})
         return attrs
 
+    # def validate(self, attrs):
+    #     arn_number = attrs.get('arn_number')
+    #     email = attrs.get('email')
+    #     if not verify_arn(arn_number, email):
+    #         raise serializers.ValidationError({"arn_number": "ARN number is invalid or does not match the provided email."})
+    #     return attrs
+
     def create(self, validated_data):
         user = User.objects.create_user(
             email=validated_data['email'],
@@ -78,5 +121,4 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # Optionally add additional claims here
         return token

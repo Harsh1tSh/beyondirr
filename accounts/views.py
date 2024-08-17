@@ -4,7 +4,6 @@ from rest_framework import status, views
 from rest_framework.response import Response
 from .serializers import UserSignupSerializer, MyTokenObtainPairSerializer
 
-
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
