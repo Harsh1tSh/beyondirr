@@ -11,41 +11,51 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
+
 def validate_arn_selenium(arn_number, user_email):
     options = Options()
-    options.headless = True  
+    options.headless = True
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
 
     try:
         driver.get('https://www.amfiindia.com/locate-your-nearest-mutual-fund-distributor-details')
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.TAG_NAME, "body")))  
+        WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "NearestFinAdvisorsARN")))
 
-        arn_input = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "NearestFindAdvisorsARN"))
-        )
+        arn_input = driver.find_element(By.ID, "NearestFinAdvisorsARN")
         arn_input.send_keys(arn_number)
-        
-        submit_button = driver.find_element(By.XPATH, '//input[@value="Go"]')
+        submit_button = driver.find_element(By.ID, 'hrfGo')
         submit_button.click()
+        WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.ID, "divExcel")))
 
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'divExcel'))) 
-        results_table = driver.find_element(By.TAG_NAME, 'table')
+        results_table = driver.find_element(By.ID, 'divExcel').find_element(By.TAG_NAME, 'tbody')
         rows = results_table.find_elements(By.TAG_NAME, 'tr')
-        
-        for row in rows[1:]:  # Skip header row
+
+        for index, row in enumerate(rows):
+            if index == 0:
+                continue  # skip header
             cells = row.find_elements(By.TAG_NAME, 'td')
-            arn_from_table = cells[0].text.strip()  
-            email_from_table = cells[4].text.strip()  
+            if len(cells) < 5:  # Ensure there are enough cells
+                continue
+            arn_from_table = cells[1].text.strip()
+            email_from_table = cells[5].text.strip()
+            print(f"Row {index}: ARN={arn_from_table}, Email={email_from_table}")  # Debug output
+
             if arn_from_table == arn_number and email_from_table.lower() == user_email.lower():
                 return True
 
-        return False
+        return False  # Return False if no match found
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return False
     finally:
         driver.quit()
+
+
 
 # :(
 
@@ -98,16 +108,12 @@ class UserSignupSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         arn_number = attrs.get('arn_number')
         email = attrs.get('email')
+        print(arn_number)
+        print(email)
         if not validate_arn_selenium(arn_number, email):
             raise serializers.ValidationError({"arn_number": "ARN number is invalid or does not match the provided email."})
         return attrs
 
-    # def validate(self, attrs):
-    #     arn_number = attrs.get('arn_number')
-    #     email = attrs.get('email')
-    #     if not verify_arn(arn_number, email):
-    #         raise serializers.ValidationError({"arn_number": "ARN number is invalid or does not match the provided email."})
-    #     return attrs
 
     def create(self, validated_data):
         user = User.objects.create_user(
