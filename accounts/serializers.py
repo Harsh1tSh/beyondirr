@@ -9,12 +9,6 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
-
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
 
 def validate_arn_selenium(arn_number, user_email):
     options = Options()
@@ -39,7 +33,7 @@ def validate_arn_selenium(arn_number, user_email):
             if index == 0:
                 continue  # skip header
             cells = row.find_elements(By.TAG_NAME, 'td')
-            if len(cells) < 5:  # Ensure there are enough cells
+            if len(cells) < 5:  
                 continue
             arn_from_table = cells[1].text.strip()
             email_from_table = cells[5].text.strip()
@@ -47,8 +41,7 @@ def validate_arn_selenium(arn_number, user_email):
 
             if arn_from_table == arn_number and email_from_table.lower() == user_email.lower():
                 return True
-
-        return False  # Return False if no match found
+        return False  
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return False
