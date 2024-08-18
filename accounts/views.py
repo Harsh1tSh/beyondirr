@@ -28,7 +28,8 @@ class UserSignupView(views.APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
- 
+
+# Should i use decorator here too?  
 class TransactionUploadView(views.APIView):
     parser_classes = (MultiPartParser, FormParser)
 
