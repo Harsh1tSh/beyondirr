@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-
+from django.conf import settings
 # Create your models here.
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -23,6 +24,7 @@ class UserManager(BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
 
         return self.create_user(email, password, **extra_fields)
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
@@ -49,3 +51,24 @@ class LogRequest(models.Model):
 
     def __str__(self):
         return f"{self.method} {self.url} - {self.status_code} at {self.timestamp}"
+    
+
+class Transaction(models.Model):
+    ASSET_CLASSES = [
+        ('Equity', 'Equity'),
+        ('Debt', 'Debt'),
+        ('Alternate', 'Alternate'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    product = models.CharField(max_length=255)
+    asset_class = models.CharField(max_length=20, choices=ASSET_CLASSES)
+    date = models.DateField()
+    units = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ('user', 'product', 'date')
+
+    def __str__(self):
+        return f"{self.product} ({self.date}) - {self.user.email}"

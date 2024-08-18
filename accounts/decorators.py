@@ -1,6 +1,7 @@
 import logging
 from functools import wraps
 
+
 logger = logging.getLogger(__name__)
 
 def log_request(record_success=False):

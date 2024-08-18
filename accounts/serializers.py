@@ -1,7 +1,7 @@
-from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from .models import User
+from .models import User, Transaction
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -9,6 +9,17 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+from django.db import transaction as db_transaction
+import pandas as pd
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        return token
+
 
 def validate_arn_selenium(arn_number, user_email):
     options = Options()
@@ -49,49 +60,6 @@ def validate_arn_selenium(arn_number, user_email):
         driver.quit()
 
 
-
-# :(
-
-# import requests
-# from bs4 import BeautifulSoup
-
-# def verify_arn(arn_number, signup_email):
-#     # URL of the form
-#     url = "https://www.amfiindia.com/locate-your-nearest-mutual-fund-distributor-details"
-
-#     # Form data
-#     data = {
-#         'AMFI Registration Number(ARN)': arn_number,
-
-#     }
-
-#     # Submit the form
-#     response = requests.post(url, data=data)
-
-#     # Check if the request was successful
-#     if response.status_code == 200:
-#         soup = BeautifulSoup(response.text, 'html.parser')
-#         table = soup.find('table', {'id': 'NearestFindAdvisorsARN'}) 
-
-#         # Extract email from the table
-#         email_from_table = None
-#         for row in table.find_all('tr'):
-#             cols = row.find_all('td')
-#             if len(cols) > 1: 
-#                 if "Email" in cols[0].text:
-#                     email_from_table = cols[1].text.strip()
-#                     break
-        
-   
-#         if email_from_table == signup_email:
-#             return True
-#         else:
-#             return False
-
-#     else:
-#         return False
-
-
 class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -115,9 +83,53 @@ class UserSignupSerializer(serializers.ModelSerializer):
             arn_number=validated_data['arn_number']
         )
         return user
+    
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        return token
+class TransactionUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+    def validate_file(self, value):
+        if not value.name.endswith('.xlsx'):
+            raise serializers.ValidationError("Invalid file format. Please upload an Excel file.")
+        return value
+
+    def create(self, validated_data):
+        file = validated_data.get('file')
+        user = self.context['request'].user
+
+        try:
+            print("Reading Excel file...")
+            df = pd.read_excel(file)
+            print("Excel file read successfully!")
+
+            # Process each row in the Excel file
+            for _, row in df.iterrows():
+                print(f"Processing row: {row}")
+                try:
+                    with db_transaction.atomic():
+                        # try to update the existing transaction
+                        transaction_instance = Transaction.objects.get(
+                            user=user,
+                            product=row['Product'],
+                            date=row['Date']
+                        )
+                        transaction_instance.asset_class = row['Asset Class']
+                        transaction_instance.units = row['Units']
+                        transaction_instance.amount = row['Amount']
+                        transaction_instance.save()
+                        print(f"Updated existing transaction: {transaction_instance}")
+                except Transaction.DoesNotExist:
+                    # If the transaction does not exist, create it
+                    Transaction.objects.create(
+                        user=user,
+                        product=row['Product'],
+                        asset_class=row['Asset Class'],
+                        date=row['Date'],
+                        units=row['Units'],
+                        amount=row['Amount']
+                    )
+                    print(f"Created new transaction: {row['Product']} on {row['Date']}")
+        except Exception as e:
+            print(f"Error while processing file: {str(e)}")
+            raise serializers.ValidationError(f"Error processing file: {str(e)}")
+        return {"status": "success"}
