@@ -69,30 +69,30 @@ This project is a submission for the BeyondIRR Hiring Assignment, August 2024. T
   - **Response**: Yearly transaction summary by asset class.
 
 ## Project Structure
-beyondirr/
-│
-├── beyondirr/
-│   ├── __init__.py
-│   ├── asgi.py
-│   ├── settings.py
-│   ├── urls.py
-│   ├── wsgi.py
-│
-├── accounts/
-│   ├── migrations/
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── models.py
-│   ├── serializers.py
-│   ├── tests.py
-│   ├── urls.py
-│   ├── views.py
-│   └── decorators.py
-│
-├── manage.py
-├── requirements.txt
-├── README.md
-├── initial_data.json (optional)
-└── venv/ (optional, not included in the repository)
+      beyondirr/
+      │
+      ├── beyondirr/
+      │   ├── __init__.py
+      │   ├── asgi.py
+      │   ├── settings.py
+      │   ├── urls.py
+      │   ├── wsgi.py
+      │
+      ├── accounts/
+      │   ├── migrations/
+      │   ├── __init__.py
+      │   ├── admin.py
+      │   ├── apps.py
+      │   ├── models.py
+      │   ├── serializers.py
+      │   ├── tests.py
+      │   ├── urls.py
+      │   ├── views.py
+      │   └── decorators.py
+      │
+      ├── manage.py
+      ├── requirements.txt
+      ├── README.md
+      ├── initial_data.json (optional)
+      └── venv
 
