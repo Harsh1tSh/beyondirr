@@ -107,7 +107,7 @@ class TransactionUploadSerializer(serializers.Serializer):
                 print(f"Processing row: {row}")
                 try:
                     with db_transaction.atomic():
-                        # try to update the existing transaction
+                        # Try to update the existing transaction
                         transaction_instance = Transaction.objects.get(
                             user=user,
                             product=row['Product'],
@@ -129,6 +129,9 @@ class TransactionUploadSerializer(serializers.Serializer):
                         amount=row['Amount']
                     )
                     print(f"Created new transaction: {row['Product']} on {row['Date']}")
+                except Exception as e:
+                    print(f"Error while processing row: {str(e)}")
+                    raise serializers.ValidationError(f"Error processing row: {str(e)}")
         except Exception as e:
             print(f"Error while processing file: {str(e)}")
             raise serializers.ValidationError(f"Error processing file: {str(e)}")
