@@ -93,6 +93,6 @@ This project is a submission for the BeyondIRR Hiring Assignment, August 2024. T
       ├── manage.py
       ├── requirements.txt
       ├── README.md
-      ├── initial_data.json (optional)
+      ├── initial_data.json
       └── venv
 
