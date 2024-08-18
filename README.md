@@ -27,14 +27,15 @@ This project is a submission for the BeyondIRR Hiring Assignment, August 2024. T
 - Virtualenv (optional but recommended)
 
 ### Installation Steps
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd beyondirr
-2. **Create a virtual environment:**
+
+1. **Create a virtual environment:**
     ```bash
     python -m venv venv
     source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Harsh1tSh/beyondirr
+   cd beyondirr
 3. **Install dependencies:**
     ```bash
     pip install -r requirements.txt
