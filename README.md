@@ -1,8 +1,8 @@
-# BeyondIRR Hiring Assignment - August 2024
+
 
 
 ## Project Overview
-This project is a submission for the BeyondIRR Hiring Assignment, August 2024. The assignment focuses on developing a Django-based FinTech application with various features like JWT authentication, custom user models, ARN validation, transaction management, and more.
+This project focuses on developing a Django-based FinTech application with various features like JWT authentication, custom user models, ARN validation, transaction management, and more.
 
 ## Features Implemented
 1. **JWT Authentication**: Secure API endpoints with JWT using the RS256 algorithm.
